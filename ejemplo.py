@@ -90,7 +90,51 @@ elementos = np.array([
 print(len(elementos)) # Imprime la longitud de los elementos.
 # ======================================================================================================
 
-from K_cercha import cerchaGlobal
+theta = [] #Lista que almacenará la inclinación de cada elemento
+L = [] # Lista que almacenará la longitud de cada elemento
+
+# -------------------------------------------------------------------------------------------------
+# NOTA:
+# Las siguientes listas no se necesitan puesto que todos los elementos de este ejemplo
+# son del mismo material y tienen la misma sección.
+# En el caso genérico, de sección y material variables, esas listas deben ser un dato de entrada.
+#  
+# A = []
+# E = []
+# -------------------------------------------------------------------------------------------------
+
+K_elem = [] #Lista que almacenará las matrices globales de cada elemento.
+
+
+from K_cercha import K_cerchaGlobal
+# Lo ideal es que las importaciones vayan al principio del archivo (o en un archivo aparte).
+
+i = 0
+for elem in elementos:
+    
+    ni = elem[0] # índice de nodo inicial
+    nj = elem[1] # Índice de nodo final
+
+    # Corrección de índice. Los arreglos en python inician en 0
+    ni = ni - 1
+    nj = nj - 1
+
+    # Extracción de coordenadas nodo inicial
+    xi = nodos[ni][0]
+    yi = nodos[ni][1]
+
+    # Extracción de coordenadas nodo final
+    xj = nodos[nj][0]
+    yj = nodos[nj][1]
+
+    theta.append(math.atan2(yj-yi,xj-xi))      # Pone el valor calculado del ángulo al final de la lista.
+    L.append(math.sqrt((xj-xi)**2+(yj-yi)**2)) # Pone el valor calculado de la longitud al final de la lista.
+
+    K_elem.append(K_cerchaGlobal(theta[i], E, A, L[i]))
+
+    i=i+1
+
+
 
 #cerchaGlobal(math.pi,0,0,0)
 #mat2 = cerchaGlobal(math.pi,0,0,0)
