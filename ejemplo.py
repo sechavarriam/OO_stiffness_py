@@ -87,7 +87,13 @@ elementos = np.array([
     [7,3]
 ])
 
-print(len(elementos)) # Imprime la longitud de los elementos.
+# Cálculo de número de nodos y de elementos en términos de las listas de entrada.
+n_nodos = len(nodos)
+n_elem  = len(elementos)
+
+DoF = n_nodos * 2 # Número de grados de libertad totales para toda la estructura
+
+#print(len(elementos)) # Imprime la longitud de los elementos.
 # ======================================================================================================
 
 theta = [] #Lista que almacenará la inclinación de cada elemento
@@ -104,7 +110,6 @@ L = [] # Lista que almacenará la longitud de cada elemento
 # -------------------------------------------------------------------------------------------------
 
 K_elem = [] #Lista que almacenará las matrices globales de cada elemento.
-
 
 from K_cercha import K_cerchaGlobal
 # Lo ideal es que las importaciones vayan al principio del archivo (o en un archivo aparte).
@@ -130,12 +135,21 @@ for elem in elementos:
     theta.append(math.atan2(yj-yi,xj-xi))      # Pone el valor calculado del ángulo al final de la lista.
     L.append(math.sqrt((xj-xi)**2+(yj-yi)**2)) # Pone el valor calculado de la longitud al final de la lista.
 
-    K_elem.append(K_cerchaGlobal(theta[i], E, A, L[i]))
+    K_elem.append(K_cerchaGlobal(theta[i], E, A, L[i])) #Cálculo y almacenamiento de matriz de rigidez global por elemento.
 
     i=i+1
 
+## ========================================================================================
+## ========================================================================================
+## ============== Ensamble de la matriz global de la estructura. ========================== 
+## ========================================================================================
+## ========================================================================================
+
+K = np.zeros([DoF,DoF]) #Inicialización de la matriz de rigidez global de la estructura.
 
 
-#cerchaGlobal(math.pi,0,0,0)
-#mat2 = cerchaGlobal(math.pi,0,0,0)
-#print(matRigidez)
+
+## ========================================================================================
+## ========================================================================================
+
+#print(K)
