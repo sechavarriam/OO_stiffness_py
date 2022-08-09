@@ -1,7 +1,11 @@
 import numpy as np
 
+# DATOS SECCIÓN
+E = 210e6      #[kPa] = 200 [GPa]
+A = 0.05*0.02  #[m]^2
+
 # Variables auxiliares para creación de la malla
-r1 = 1
+r1 = 1.0
 r2 = 1.2
 
 t0 = 0
@@ -10,9 +14,7 @@ t2 = 45
 t3 = 60
 t4 = 90
 
-
-
-# Creación de arreglo de nodos en coordenadas polares.
+# Creación de arreglo de nodos en coordenadas polares. =================================================
 
 # Es un arreglo de la libraria numpy donde cada entrada es una lista de python.
 
@@ -33,6 +35,8 @@ nodosPolares = np.array([
 
 ## Ejemplo de sintaxis MATLAB para cración de matriz
 # nodosP_MATLAB = [r1, t4; r2, t3; ... ; r2, t0]'
+
+# ======================================================================================================
 
 print(nodosPolares)
 
@@ -57,6 +61,7 @@ for nodo in nodosPolares:  #Recorre cada entrada del arreglo, es decir, lista a 
     # Vea por ejemplo: https://www.geeksforgeeks.org/python-string-format-method/
 
 
+# ======================================================================================================
 # La estructura de control del ciclo se interrumpe cuando el codigo se devuelve en la identación.
 nodos = np.array(nodos) # Convierte la lista de listas en un arreglo de numpy.
 
@@ -83,8 +88,9 @@ elementos = np.array([
 ])
 
 print(len(elementos)) # Imprime la longitud de los elementos.
+# ======================================================================================================
 
-from rigidez import cerchaGlobal
+from K_cercha import cerchaGlobal
 
 #cerchaGlobal(math.pi,0,0,0)
 #mat2 = cerchaGlobal(math.pi,0,0,0)
