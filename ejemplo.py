@@ -38,8 +38,6 @@ nodosPolares = np.array([
 
 # ======================================================================================================
 
-print(nodosPolares)
-
 import math #Importa la librería math de python para poder usar las funciones matemáticas usuales.
 
 # Creación de lista vacía dónde se almacenarán las coordenadas de los nodos en coordenadas cartesianas.
@@ -130,7 +128,7 @@ for elem in elementos:
 
     # Extracción de coordenadas nodo final
     xj = nodos[nj][0]
-    yj = nodos[nj][1]
+    yj = nodos[nj][1] 
 
     theta.append(math.atan2(yj-yi,xj-xi))      # Pone el valor calculado del ángulo al final de la lista.
     L.append(math.sqrt((xj-xi)**2+(yj-yi)**2)) # Pone el valor calculado de la longitud al final de la lista.
@@ -139,6 +137,11 @@ for elem in elementos:
 
     i=i+1
 
+# ------- Gráfica de la malla --------------
+from plot_Struct1D import plot_2D_Truss
+plot_2D_Truss(nodos, elementos)
+# ------------------------------------------
+
 ## ========================================================================================
 ## ========================================================================================
 ## ============== Ensamble de la matriz global de la estructura. ========================== 
@@ -146,6 +149,9 @@ for elem in elementos:
 ## ========================================================================================
 
 K = np.zeros([DoF,DoF]) #Inicialización de la matriz de rigidez global de la estructura.
+
+
+
 
 
 
