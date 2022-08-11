@@ -78,6 +78,28 @@ restricciones = np.array([
     [1,0]
 ])
 
+# https://www.geeksforgeeks.org/flatten-a-matrix-in-python-using-numpy/
+rest_DoF = restricciones.flatten()
+#print(rest_DoF)
+
+#rest_index = np.argwhere(rest_DoF)
+#print(rest_index)
+#
+#rest_index = np.nonzero(rest_DoF)
+#print(rest_index)
+#
+#rest_index = np.flatnonzero(rest_DoF)
+#print(rest_index)
+#
+
+# https://stackoverflow.com/questions/4588628/find-indices-of-elements-equal-to-zero-in-a-numpy-array
+rest_index = np.where(rest_DoF != 0)[0]
+free_index = np.where(rest_DoF == 0)[0]
+
+#print(rest_index)
+#print(free_index)
+
+
 # Creación de arreglo con conectividades de los elementos. Es un arreglo de listas que para cada elemento
 # contiene una lista con el índice del nodo inicial y del nodo final en orden.
 elementos = np.array([
@@ -104,11 +126,7 @@ elementos = np.array([
 n_nodos = len(nodos)
 n_elem  = len(elementos)
 
-DoF = n_nodos * 2 # Número de grados de libertad totales para toda la estructura
-
-
-
-
+DoF = n_nodos*2 # Número de grados de libertad totales para toda la estructura
 
 #print(len(elementos)) # Imprime la longitud de los elementos.
 # ======================================================================================================
@@ -157,8 +175,8 @@ for elem in elementos:
     i=i+1
 
 # ------- Gráfica de la malla --------------
-from plot_Struct1D import plot_2D_Truss
-plot_2D_Truss(nodos, elementos)
+#from plot_Struct1D import plot_2D_Truss
+#plot_2D_Truss(nodos, elementos)
 # ------------------------------------------
 
 ## ========================================================================================
@@ -168,7 +186,6 @@ plot_2D_Truss(nodos, elementos)
 ## ========================================================================================
 
 K = np.zeros([DoF,DoF]) #Inicialización de la matriz de rigidez global de la estructura.
-
 
 # https://realpython.com/python-enumerate/
 # When you use enumerate(), the function gives you back two loop variables:
@@ -181,17 +198,54 @@ for i, elem in enumerate(elementos):
     nj = elem[1] # Índice de nodo final
 
     # Corrección de índice. Los arreglos en python inician en 0
-    ni = ni - 1; nj = nj - 1
+    ni = ni - 1
+    nj = nj - 1
 
     # Extracción de coordenadas
-    xi = nodos[ni][0]; xj = nodos[nj][0]
-    yi = nodos[ni][1]; yj = nodos[nj][1]
+    xi = nodos[ni][0]
+    yi = nodos[ni][1]
+
+    xj = nodos[nj][0]
+    yj = nodos[nj][1]
 
 
 
 
 
-## ========================================================================================
-## ========================================================================================
 
 #print(K)
+## ========================================================================================
+## ========================================================================================
+
+
+#print(K_elem[0])
+#print(K_elem[0][0:2,0:2])
+
+K[0:2,0:2] = K_elem[0][0:2,0:2]
+K[3:5,3:5] = K_elem[0][0:2,0:2]
+
+
+# List comprehension 
+# https://www.geeksforgeeks.org/python-list-comprehension/
+
+Knn = [[K[i][j] for j in free_index] for i in free_index]
+Kaa = [[K[i][j] for j in rest_index] for i in rest_index]
+Kan = [[K[i][j] for j in rest_index] for i in free_index]
+
+Knn = np.matrix(Knn)
+Kaa = np.matrix(Kaa)
+Kan = np.matrix(Kan)
+Kna = Kan.transpose()
+
+
+#import matplotlib.pyplot as plt
+#fig, ax = plt.subplots()
+#plt.spy(K, marker='o')
+#plt.show()
+
+# https://stackoverflow.com/questions/29102955/how-to-print-numpy-objects-without-line-breaks
+np.set_printoptions(threshold=np.inf)
+np.set_printoptions(linewidth=np.inf)
+
+#print(np.round(Knn,0))
+#print(np.round(Kaa,0))
