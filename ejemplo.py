@@ -33,6 +33,7 @@ nodosPolares = np.array([
     [r2,t0]
 ])
 
+
 ## Ejemplo de sintaxis MATLAB para cración de matriz
 # nodosP_MATLAB = [r1, t4; r2, t3; ... ; r2, t0]'
 
@@ -63,6 +64,20 @@ for nodo in nodosPolares:  #Recorre cada entrada del arreglo, es decir, lista a 
 # La estructura de control del ciclo se interrumpe cuando el codigo se devuelve en la identación.
 nodos = np.array(nodos) # Convierte la lista de listas en un arreglo de numpy.
 
+# Booleano que indica qué grado de libertad está restringido por nodo.
+restricciones = np.array([
+    [1,1],
+    [0,0],
+    [0,0],
+    [0,0],
+    [1,1],
+    [1,0],
+    [0,0],
+    [0,0],
+    [0,0],
+    [1,0]
+])
+
 # Creación de arreglo con conectividades de los elementos. Es un arreglo de listas que para cada elemento
 # contiene una lista con el índice del nodo inicial y del nodo final en orden.
 elementos = np.array([
@@ -90,6 +105,10 @@ n_nodos = len(nodos)
 n_elem  = len(elementos)
 
 DoF = n_nodos * 2 # Número de grados de libertad totales para toda la estructura
+
+
+
+
 
 #print(len(elementos)) # Imprime la longitud de los elementos.
 # ======================================================================================================
@@ -150,6 +169,23 @@ plot_2D_Truss(nodos, elementos)
 
 K = np.zeros([DoF,DoF]) #Inicialización de la matriz de rigidez global de la estructura.
 
+
+# https://realpython.com/python-enumerate/
+# When you use enumerate(), the function gives you back two loop variables:
+#   1. The count of the current iteration (i)
+#   2. The value of the item at the current iteration (elem)
+
+for i, elem in enumerate(elementos): 
+
+    ni = elem[0] # índice de nodo inicial
+    nj = elem[1] # Índice de nodo final
+
+    # Corrección de índice. Los arreglos en python inician en 0
+    ni = ni - 1; nj = nj - 1
+
+    # Extracción de coordenadas
+    xi = nodos[ni][0]; xj = nodos[nj][0]
+    yi = nodos[ni][1]; yj = nodos[nj][1]
 
 
 
