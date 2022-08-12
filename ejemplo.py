@@ -42,8 +42,6 @@ nodosPolares = np.array([
 
 # ======================================================================================================
 
-
-
 # Creación de lista vacía dónde se almacenarán las coordenadas de los nodos en coordenadas cartesianas.
 # Lo usual es que una estructura se describa directamente en este sistema coordenado.
 nodos = []
