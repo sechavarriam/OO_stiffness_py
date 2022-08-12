@@ -1,3 +1,5 @@
+# RAMA DANIELA
+
 import numpy as np
 import math #Importa la librería math de python para poder usar las funciones matemáticas usuales.
 from K_cercha import K_cerchaGlobal
