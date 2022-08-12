@@ -247,7 +247,6 @@ Kan = np.matrix(Kan)
 Kna = Kan.transpose()
 
 
-
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
 plt.spy(K, marker='o')
@@ -255,8 +254,8 @@ plt.show()
 
 
 # https://stackoverflow.com/questions/29102955/how-to-print-numpy-objects-without-line-breaks
-#np.set_printoptions(threshold=np.inf)
-#np.set_printoptions(linewidth=np.inf)
+np.set_printoptions(threshold=np.inf)
+np.set_printoptions(linewidth=np.inf)
 
 #print(np.round(Knn,0))
 #print(np.round(Kaa,0))
