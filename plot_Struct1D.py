@@ -1,7 +1,7 @@
 ## Función para graficar estructura con elementos 1-dimesionales (e.g. cerchas, pórticos)
 import matplotlib.pyplot as plt
 
-def plot_2D_Truss(nodos, elementos):
+def plot_2D_Frame(nodos, elementos):
     n_nodos = len(nodos)
     n_elem  = len(elementos)
 
@@ -12,10 +12,6 @@ def plot_2D_Truss(nodos, elementos):
         
         ni = elem[0] # índice de nodo inicial
         nj = elem[1] # Índice de nodo final
-
-        # Corrección de índice. Los arreglos en python inician en 0
-        ni = ni - 1
-        nj = nj - 1
 
         # Extracción de coordenadas nodo inicial
         xi = nodos[ni][0]
