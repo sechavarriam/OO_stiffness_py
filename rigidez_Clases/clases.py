@@ -28,9 +28,9 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.A = A
         self.I = I
         self.K = np.matrix(np.zeros([6,6]))
-        super(ElementoPortico,self).__init__(nodos,E,A,I)
-        #super(Elemento,self).__init__(nodos)
-        #super(MaterialIsotropicoLineal,self).__init__(E)
+        #super(ElementoPortico,self).__init__(nodos,E,A,I)
+        Elemento.__init__(self,nodos)
+        MaterialIsotropicoLineal.__init__(self,E)
 
     def calcularLongitud(self):
         ni = self.nodos[0]
