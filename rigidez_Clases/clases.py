@@ -28,7 +28,8 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.A = A
         self.I = I
         self.K = np.matrix(np.zeros([6,6]))
-        #super(ElementoPortico,self).__init__(nodos,E,A,I)
+        # Se llama el constructor como un metodo de clase y se pasa self:
+        # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
         Elemento.__init__(self,nodos)
         MaterialIsotropicoLineal.__init__(self,E)
 
