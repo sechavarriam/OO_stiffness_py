@@ -4,17 +4,20 @@ import numpy as np
 #---------------------------------------------------------------------------------
 class Nodo:
     indice = 1
-    def __init__(self, x1, x2):
+
+    def __init__(self, x1, x2, restricciones=[0,0,0]) -> None:
         self.indice = Nodo.indice
         self.x1 = x1
         self.x2 = x2
+        self.restricciones = restricciones
         Nodo.indice += 1 
-    
+
     #__str__(self) -> str: es un método (función) de la clase que le dice a 
     # python qué mostrar cuando se hace print. En este caso mostrará las 
     # coordenadas del nodo.
     def __str__(self) -> str: 
         return "("+str(self.x1)+","+str(self.x2)+")" 
+
 
 #---------------------------------------------------------------------------------
 class MaterialIsotropicoLineal:
@@ -98,3 +101,14 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         self.K = np.transpose(T) * k * T
 #---------------------------------------------------------------------------------
+class Structure:
+    def __init__(self, nodos, elementos) -> None:
+        self.nodos = nodos
+        self.elementos = elementos
+        tamano = 3*len(nodos)
+        self.K = np.matrix(np.zeros([tamano, tamano]))
+        self.resV = np.array(tamano)
+
+    def ensamble(self):
+        pass
+
