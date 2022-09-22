@@ -41,6 +41,8 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
         Elemento.__init__(self,nodos)
         MaterialIsotropicoLineal.__init__(self,E)
+        self.calcularLongitud()
+        self.K_porticoGlobal()
 
     def calcularLongitud(self):
         ni = self.nodos[0]
@@ -48,9 +50,6 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         self.L = math.sqrt((nj.x1 - ni.x1)**2 + (nj.x2 - ni.x2)**2)
         self.theta = math.atan2((nj.x2 - ni.x2),(nj.x1 - ni.x1))
-
-    def T(self):
-        pass    
 
     def K_porticoGlobal(self):
         c = math.cos(self.theta) 
@@ -102,13 +101,49 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.K = np.transpose(T) * k * T
 #---------------------------------------------------------------------------------
 class Structure:
-    def __init__(self, nodos, elementos) -> None:
+    def __init__(self ,nodos, elementos) -> None:
         self.nodos = nodos
         self.elementos = elementos
         tamano = 3*len(nodos)
         self.K = np.matrix(np.zeros([tamano, tamano]))
         self.resV = np.array(tamano)
+        self.ensamble()
 
     def ensamble(self):
-        pass
+        for elem in self.elementos: 
+            ni = elem.nodos[0].indice - 1 # índice de nodo inicial
+            nj = elem.nodos[1].indice - 1 # Índice de nodo final
+
+            inicialI = 3*ni
+            finalI = 3*ni + 2
+
+            inicialJ = 3*nj
+            finalJ = 3*nj + 2
+
+            self.K[inicialI:finalI+1,inicialI:finalI+1] += elem.K[0:3,0:3]
+            self.K[inicialJ:finalJ+1,inicialJ:finalJ+1] += elem.K[3:6,3:6]
+
+            self.K[inicialI:finalI+1,inicialJ:finalJ+1] += elem.K[0:3,3:6]
+            self.K[inicialJ:finalJ+1,inicialI:finalI+1] += elem.K[3:6,0:3]
+
+        print(self.K)
+## ========================================================================================
+## ========================================================================================
+
+
+#print(K_elem[0])
+#print(K_elem[0][0:2,0:2])
+
+# List comprehension 
+# https://www.geeksforgeeks.org/python-list-comprehension/
+
+#Knn = [[K[i][j] for j in free_index] for i in free_index]
+#Kaa = [[K[i][j] for j in rest_index] for i in rest_index]
+#Kan = [[K[i][j] for j in free_index] for i in rest_index]
+#
+#
+#Knn = np.matrix(Knn)
+#Kaa = np.matrix(Kaa)
+#Kan = np.matrix(Kan)
+#Kna = Kan.transpose()
 

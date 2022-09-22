@@ -82,17 +82,6 @@ restricciones = np.array([
 # https://www.geeksforgeeks.org/flatten-a-matrix-in-python-using-numpy/
 rest_DoF = restricciones.flatten()
 print(rest_DoF)
-
-#rest_index = np.argwhere(rest_DoF)
-#print(rest_index)
-#
-#rest_index = np.nonzero(rest_DoF)
-#print(rest_index)
-#
-#rest_index = np.flatnonzero(rest_DoF)
-#print(rest_index)
-#
-
 # https://stackoverflow.com/questions/4588628/find-indices-of-elements-equal-to-zero-in-a-numpy-array
 rest_index = np.where(rest_DoF != 0)[0]
 free_index = np.where(rest_DoF == 0)[0]
