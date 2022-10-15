@@ -3,14 +3,19 @@ import numpy as np
 
 #---------------------------------------------------------------------------------
 class Nodo:
-    indice = 1
+    # indice propio de la clase. Cada vez que se llame el constructor para crear un
+    # nodo nuevo, el índice se actualiza. Almacenará la cantidad de nodos creados.
+
+    # Al ser un atributo de la clase no se pone "self"
+    indice = 1 # 
 
     def __init__(self, x1, x2, restricciones=[0,0,0]) -> None:
-        self.indice = Nodo.indice
-        self.x1 = x1
-        self.x2 = x2
-        self.restricciones = restricciones
-        Nodo.indice += 1 
+        self.indice = Nodo.indice           # Indice propio del nodo creado. 
+        self.x1 = x1                        # Coordenada 1.
+        self.x2 = x2                        # Coordenada 2.
+        self.restricciones = restricciones  # Arregle de restricciones. [0,0,0] default
+
+        Nodo.indice += 1 # Suma uno al índice de la clase. 
 
     #__str__(self) -> str: es un método (función) de la clase que le dice a 
     # python qué mostrar cuando se hace print. En este caso mostrará las 
@@ -23,7 +28,10 @@ class Nodo:
 class MaterialIsotropicoLineal:
     def __init__(self, E) -> None:
         self.E = E
+
 #---------------------------------------------------------------------------------
+# Clase elemento genérico. Tiene los atributos generales a cualquie tipo de elemento sea 
+# de volúmen, de área, o estructural tipo viga o pórtico. 
 class Elemento:
     indice = 1
     def __init__(self, nodos) -> None:
@@ -31,12 +39,21 @@ class Elemento:
         self.nodos = nodos
         Elemento.indice += 1
 #---------------------------------------------------------------------------------
+# Clase elemento pórtico:
+# Utiliza "Herencia múltiple" ya que hereda todos los atributos y métodos de elemento y 
+# de material isotrópico lineal.
 class ElementoPortico(Elemento, MaterialIsotropicoLineal):
+
+    # Constructor: Método para crear (construir, instanciar) Elementos pórtico. ==========
     def __init__(self, nodos, E, A, I) -> None:
-        self.L = 0
+
+        #Atributos creados por el constructor ==========
+        self.L = 0 # Se inicializa de longitul L
         self.A = A
         self.I = I
         self.K = np.matrix(np.zeros([6,6]))
+        # ===============================================
+
         # Se llama el constructor como un metodo de clase y se pasa self:
         # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
         Elemento.__init__(self,nodos)
@@ -44,6 +61,11 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.calcularLongitud()
         self.K_porticoGlobal()
 
+    # Fin del constructor =================================================================
+    
+    # Métodos adicionales propios de la clase. 
+
+    # Cálculo de la longitud en términos de las coordenadas. Se usa en el constructor.
     def calcularLongitud(self):
         ni = self.nodos[0]
         nj = self.nodos[1]
@@ -51,6 +73,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.L = math.sqrt((nj.x1 - ni.x1)**2 + (nj.x2 - ni.x2)**2)
         self.theta = math.atan2((nj.x2 - ni.x2),(nj.x1 - ni.x1))
 
+    # Cálculo de la matriz de rigidez del elemento en coordenadas globales. Se una en el constructor.
     def K_porticoGlobal(self):
         c = math.cos(self.theta) 
         s = math.sin(self.theta) 
@@ -100,13 +123,21 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         self.K = np.transpose(T) * k * T
 #---------------------------------------------------------------------------------
+
+# Clase Sructure. 
 class Structure:
+    # Constructor. La estructura se crea en términos de la malla, es decir, una lista de nodos
+    # y una lista de elementos.
+
     def __init__(self ,nodos, elementos) -> None:
         self.nodos = nodos
         self.elementos = elementos
-        tamano = 3*len(nodos)
-        self.K = np.matrix(np.zeros([tamano, tamano]))
-        self.resV = np.array(tamano)
+
+        n_DoF = 3*len(nodos) # Número de grados de libertad totales de la estructura.
+                             # En este caso está definido para pórticos planos únicamente.
+
+        self.K = np.matrix(np.zeros([n_DoF, n_DoF]))
+        self.resV = np.array(n_DoF)
         self.ensamble()
 
     def ensamble(self):
