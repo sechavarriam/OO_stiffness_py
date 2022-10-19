@@ -37,8 +37,8 @@ m = Model(s)
 m.add_node_force(5,[20, 0, 0])
 m.solve()
 
-print(m.un)
-print(m.Fa)
+#print(m.un)
+print(m.u)
 
 #print(m.F)
 #plt.show()

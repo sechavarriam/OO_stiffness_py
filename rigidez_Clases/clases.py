@@ -1,5 +1,6 @@
 from ast import Pass
 import math
+from operator import index
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,7 +16,18 @@ class Nodo:
         self.indice = Nodo.indice           # Indice propio del nodo creado. 
         self.x1 = x1                        # Coordenada 1.
         self.x2 = x2                        # Coordenada 2.
-        self.restricciones = restricciones  # Arregle de restricciones. [0,0,0] default
+        self.restricciones = restricciones  # Arreglo de restricciones. [0,0,0] default
+
+        self.n_DoF = 0 # Númreo de grados de libertad del nodo. Dependerá del modelo.
+                       # Por ejemplo, en porticos planos n_DoF es 3, en cerchas planas es 2. 
+
+
+        self.u = [] # Arreglo con desplazamientos del nodo. Se llenará dependiendo del 
+                    # tipo de modelo a resolver. Su tamaño dependerá entonces de la 
+                    # cantidad de grados de libertad del nodo en el modelo n_DoF.
+
+        #TODO: Asignar para cada grado de libertad un índice en la posición global de la
+        #      estructura. (self.DoF_Index = [])
 
         Nodo.indice += 1 # Suma uno al índice de la clase. 
 
@@ -36,9 +48,9 @@ class MaterialIsotropicoLineal:
 # de volúmen, de área, o estructural tipo viga o pórtico. 
 class Elemento:
     indice = 1
-    def __init__(self, nodos) -> None:
+    def __init__(self, nodes) -> None:
         self.indice = Elemento.indice
-        self.nodos = nodos
+        self.nodes = nodes
         Elemento.indice += 1
 #---------------------------------------------------------------------------------
 # Clase elemento pórtico:
@@ -47,7 +59,7 @@ class Elemento:
 class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
     # Constructor: Método para crear (construir, instanciar) Elementos pórtico. ==========
-    def __init__(self, nodos, E, A, I) -> None:
+    def __init__(self, nodes, E, A, I) -> None:
 
         #Atributos creados por el constructor ==========
         self.L = 0 # Se inicializa de longitul L
@@ -58,8 +70,16 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         # Se llama el constructor como un metodo de clase y se pasa self:
         # https://stackoverflow.com/questions/9575409/calling-parent-class-init-with-multiple-inheritance-whats-the-right-way
-        Elemento.__init__(self,nodos)
+        Elemento.__init__(self,nodes)
         MaterialIsotropicoLineal.__init__(self,E)
+        
+        # Asignación de número de DoF por nodo. Evalúa si no se ha asignado.
+        if self.nodes[0].n_DoF == 0: self.nodes[0].n_DoF = 3
+        if self.nodes[1].n_DoF == 0: self.nodes[1].n_DoF = 3
+
+        #TODO: Qué pasa si no es cero, pero tampoco 3? Puede pasar si se usan diferentes tipos
+        #      De elemento. 
+
         self.calcularLongitud()
         self.K_porticoGlobal()
 
@@ -69,8 +89,8 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
     # Cálculo de la longitud en términos de las coordenadas. Se usa en el constructor.
     def calcularLongitud(self):
-        ni = self.nodos[0]
-        nj = self.nodos[1]
+        ni = self.nodes[0]
+        nj = self.nodes[1]
 
         self.L = math.sqrt((nj.x1 - ni.x1)**2 + (nj.x2 - ni.x2)**2)
         self.theta = math.atan2((nj.x2 - ni.x2),(nj.x1 - ni.x1))
@@ -125,10 +145,9 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         self.K = np.transpose(T) * k * T
 
-
     def plot(self,ax):
-        ni = self.nodos[0]
-        nj = self.nodos[1]
+        ni = self.nodes[0]
+        nj = self.nodes[1]
 
         # Extracción de coordenadas nodo inicial
         xi = ni.x1
@@ -140,8 +159,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         # Traza en el eje "ax" la línea del elemento. Se debe pasar el eje.
         ax.plot([xi, xj], [yi, yj], 'k-o') 
-        
-
+    
 #---------------------------------------------------------------------------------
 
 # Clase Sructure. 
@@ -150,7 +168,7 @@ class Structure:
     # y una lista de elementos.
 
     def __init__(self ,nodos, elementos) -> None:
-        self.nodos = nodos
+        self.nodes = nodos
         self.elementos = elementos
 
         n_DoF = 3*len(nodos) # Número de grados de libertad totales de la estructura.
@@ -167,8 +185,8 @@ class Structure:
 
     def ensambleK(self):
         for elem in self.elementos: 
-            ni = elem.nodos[0].indice - 1 # índice de nodo inicial
-            nj = elem.nodos[1].indice - 1 # Índice de nodo final
+            ni = elem.nodes[0].indice - 1 # índice de nodo inicial
+            nj = elem.nodes[1].indice - 1 # Índice de nodo final
 
             inicialI = 3*ni
             finalI = 3*ni + 2
@@ -188,7 +206,7 @@ class Structure:
     def extraerRestricciones(self):
         resMat = [] # Inicialización de la matriz de restricciones.
 
-        for n in self.nodos: # Se podría simplificar usando list comprehension.
+        for n in self.nodes: # Se podría simplificar usando list comprehension.
             resMat.append(n.restricciones)
 
         resMat =np.array(resMat) # Convierte en array de python.
@@ -251,6 +269,25 @@ class Model:
         self.ua = [self.u[index] for index in self.S.rest_index]
 
 
+    def set_displacements(self): 
+        #Ensambla el vector total de desplaamientos en términos de un y ua.
+        for i, index in enumerate(self.S.free_index):
+            self.u[index] = self.un[i]
+
+        for i, index in enumerate(self.S.rest_index):
+            self.u[index] = self.ua[i]
+
+        #A cada nodo se le asigna su correspondiente desplazamiento en términos del vector u.
+        for i, node in enumerate(self.S.nodes):
+
+            for j in range(node.n_DoF):
+                node.u.append(self.u[3*i+j])
+
+            #node.u.append(self.u[3*i])
+            #node.u.append(self.u[3*i+1])
+            #node.u.append(self.u[3*i+2])
+
+
     def solve(self):        
         self.extraer_Fn()
         self.extraer_ua()
@@ -261,6 +298,18 @@ class Model:
 
         # Cálculo de las reacciones.
         self.Fa = np.matmul(self.S.Kna, self.un) + np.matmul(self.S.Kaa, self.ua)
+
+        # Ensamble del vector total de desplazamientos.
+        self.set_displacements()
+
+
+    def plot_deformed(self): 
+        S_updated = self.S  #Create a new structure to modify his nodes.
+
+
+
+
+
 
 
 
