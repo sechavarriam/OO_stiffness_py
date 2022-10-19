@@ -1,5 +1,7 @@
+from ast import Pass
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 #---------------------------------------------------------------------------------
 class Nodo:
@@ -51,7 +53,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.L = 0 # Se inicializa de longitul L
         self.A = A
         self.I = I
-        self.K = np.matrix(np.zeros([6,6]))
+        self.K = np.array(np.zeros([6,6]))
         # ===============================================
 
         # Se llama el constructor como un metodo de clase y se pasa self:
@@ -122,6 +124,24 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         k[5,5] =   4*EI/l 
 
         self.K = np.transpose(T) * k * T
+
+
+    def plot(self,ax):
+        ni = self.nodos[0]
+        nj = self.nodos[1]
+
+        # Extracción de coordenadas nodo inicial
+        xi = ni.x1
+        yi = ni.x2
+
+        # Extracción de coordenadas nodo final
+        xj = nj.x1
+        yj = nj.x2
+
+        # Traza en el eje "ax" la línea del elemento. Se debe pasar el eje.
+        ax.plot([xi, xj], [yi, yj], 'k-o') 
+        
+
 #---------------------------------------------------------------------------------
 
 # Clase Sructure. 
@@ -136,11 +156,16 @@ class Structure:
         n_DoF = 3*len(nodos) # Número de grados de libertad totales de la estructura.
                              # En este caso está definido para pórticos planos únicamente.
 
-        self.K = np.matrix(np.zeros([n_DoF, n_DoF]))
-        self.resV = np.array(n_DoF)
-        self.ensamble()
+        self.n_DoF = n_DoF
 
-    def ensamble(self):
+        self.K    = np.array(np.zeros([n_DoF, n_DoF]))
+        self.resV = np.array(np.zeros([n_DoF,1])) # Vector de restricciones.
+
+        self.extraerRestricciones()
+        self.ensambleK()
+        #self.extraer_subK() #Se deja para que lo haga el modelo.
+
+    def ensambleK(self):
         for elem in self.elementos: 
             ni = elem.nodos[0].indice - 1 # índice de nodo inicial
             nj = elem.nodos[1].indice - 1 # Índice de nodo final
@@ -157,24 +182,61 @@ class Structure:
             self.K[inicialI:finalI+1,inicialJ:finalJ+1] += elem.K[0:3,3:6]
             self.K[inicialJ:finalJ+1,inicialI:finalI+1] += elem.K[3:6,0:3]
 
-        print(self.K)
+
+    # Con el siguiente método no es necesario introducir las restricciones en el constructor
+    # de la estructura. La idea es extraer las restricciones desde los atributos de los nodos.
+    def extraerRestricciones(self):
+        resMat = [] # Inicialización de la matriz de restricciones.
+
+        for n in self.nodos: # Se podría simplificar usando list comprehension.
+            resMat.append(n.restricciones)
+
+        resMat =np.array(resMat) # Convierte en array de python.
+
+        self.resV = resMat.flatten() # Convierte matriz en lista.
+
+        self.rest_index = np.where(self.resV != 0)[0] # Índices de DoF restringidos (apoyos)
+        self.free_index = np.where(self.resV == 0)[0] # Índices de DOF libres.
+
+
+    # El siguiente método extrae, de la matriz global, las submatrices necesarias para el análisis
+    # elástico lineal estático.
+    def extraer_subK(self):
+
+        Knn = [[self.K[i][j] for j in self.free_index] for i in self.free_index]
+        Kaa = [[self.K[i][j] for j in self.rest_index] for i in self.rest_index]
+        Kan = [[self.K[i][j] for j in self.rest_index] for i in self.free_index]
+
+        self.Knn = np.array(Knn)
+        self.Kaa = np.array(Kaa)
+        self.Kan = np.array(Kan)
+
+    def plot(self,ax):
+        for e in self.elementos:
+            e.plot(ax)
+
+        ax.set_aspect('equal', 'box')
+
+#---------------------------------------------------------------------------------
+
+# Clase Model 
+
+class Model:
+    def __init__(self ,struct) -> None:
+
+        self.S = struct
+        self.F = np.array(np.zeros([self.S.n_DoF])) #Vector de fuerzas.
+
+    def add_node_force(self, node_index, force): 
+        # force = [Fx,Fy,M]
+        pos_1 = 3*(node_index-1)
+        pos_2 = 3*(node_index-1)+2
+
+        self.F[pos_1:pos_2+1] += force[0:3]
+
+    def solve(self):
+        self.S.extraer_subK() # Extrae matrices Knn de la estructura.
+
 ## ========================================================================================
 ## ========================================================================================
-
-
-#print(K_elem[0])
-#print(K_elem[0][0:2,0:2])
-
-# List comprehension 
-# https://www.geeksforgeeks.org/python-list-comprehension/
-
-#Knn = [[K[i][j] for j in free_index] for i in free_index]
-#Kaa = [[K[i][j] for j in rest_index] for i in rest_index]
-#Kan = [[K[i][j] for j in free_index] for i in rest_index]
-#
-#
-#Knn = np.matrix(Knn)
-#Kaa = np.matrix(Kaa)
-#Kan = np.matrix(Kan)
-#Kna = Kan.transpose()
 

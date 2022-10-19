@@ -228,20 +228,15 @@ Knn = [[K[i][j] for j in free_index] for i in free_index]
 Kaa = [[K[i][j] for j in rest_index] for i in rest_index]
 Kan = [[K[i][j] for j in rest_index] for i in free_index]
 
-
-
 Knn = np.matrix(Knn)
 Kaa = np.matrix(Kaa)
 Kan = np.matrix(Kan)
 Kna = Kan.transpose()
 
-
-
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
 plt.spy(K, marker='o')
 plt.show()
-
 
 # https://stackoverflow.com/questions/29102955/how-to-print-numpy-objects-without-line-breaks
 #np.set_printoptions(threshold=np.inf)
