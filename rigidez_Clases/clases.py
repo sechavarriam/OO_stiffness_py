@@ -206,10 +206,12 @@ class Structure:
         Knn = [[self.K[i][j] for j in self.free_index] for i in self.free_index]
         Kaa = [[self.K[i][j] for j in self.rest_index] for i in self.rest_index]
         Kan = [[self.K[i][j] for j in self.rest_index] for i in self.free_index]
+        Kna = [[self.K[i][j] for j in self.free_index] for i in self.rest_index]
 
         self.Knn = np.array(Knn)
         self.Kaa = np.array(Kaa)
         self.Kan = np.array(Kan)
+        self.Kna = np.array(Kna) 
 
     def plot(self,ax):
         for e in self.elementos:
@@ -219,13 +221,21 @@ class Structure:
 
 #---------------------------------------------------------------------------------
 
-# Clase Model 
+# Clase Model (static)
 
 class Model:
     def __init__(self ,struct) -> None:
-
         self.S = struct
         self.F = np.array(np.zeros([self.S.n_DoF])) #Vector de fuerzas.
+        self.u = np.array(np.zeros([self.S.n_DoF])) #Vector de desplazamientos 
+
+    def add_node_displacement(self, node_index, displacement): 
+        # displacement = [u,v,theta]
+        pos_1 = 3*(node_index-1)
+        pos_2 = 3*(node_index-1)+2
+
+        self.F[pos_1:pos_2+1] += displacement[0:3]
+
 
     def add_node_force(self, node_index, force): 
         # force = [Fx,Fy,M]
@@ -234,8 +244,26 @@ class Model:
 
         self.F[pos_1:pos_2+1] += force[0:3]
 
-    def solve(self):
+    def extraer_Fn(self): #Extracción de vector de fuerzas para DoF libres.
+        self.Fn = [self.F[index] for index in self.S.free_index]
+
+    def extraer_ua(self): #Extracción de vector de desplazamientos impuestos (apoyos).
+        self.ua = [self.u[index] for index in self.S.rest_index]
+
+
+    def solve(self):        
+        self.extraer_Fn()
+        self.extraer_ua()
         self.S.extraer_subK() # Extrae matrices Knn de la estructura.
+
+        # Cálculo de los desplazamientos.
+        self.un = np.linalg.solve(self.S.Knn , self.Fn - np.matmul(self.S.Kan, self.ua))
+
+        # Cálculo de las reacciones.
+        self.Fa = np.matmul(self.S.Kna, self.un) + np.matmul(self.S.Kaa, self.ua)
+
+
+
 
 ## ========================================================================================
 ## ========================================================================================

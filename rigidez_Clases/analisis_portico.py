@@ -34,11 +34,11 @@ s.plot(ax)
 
 m = Model(s)
 
-print(m.F)
 m.add_node_force(5,[20, 0, 0])
+m.solve()
 
-print()
-print(m.F)
+print(m.un)
+print(m.Fa)
 
 #print(m.F)
 #plt.show()
