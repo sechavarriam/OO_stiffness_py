@@ -1,7 +1,6 @@
 from ast import Pass
 import math
 import copy
-from operator import index
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,7 +12,6 @@ class Node:
     # Al ser un atributo de la clase no se pone "self"
     indice = 1 
 
-    #TODO: Generalizar a recibir coordenadas 
     def __init__(self, coord, restricciones=[0,0,0]) -> None:
         self.indice = Node.indice           # Indice propio del nodo creado. 
         self.coord = coord                     # Coordenada 2.
