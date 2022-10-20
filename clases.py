@@ -11,12 +11,12 @@ class Node:
     # nodo nuevo, el índice se actualiza. Almacenará la cantidad de nodos creados.
 
     # Al ser un atributo de la clase no se pone "self"
-    indice = 1 # 
+    indice = 1 
 
-    def __init__(self, x1, x2, restricciones=[0,0,0]) -> None:
+    #TODO: Generalizar a recibir coordenadas 
+    def __init__(self, coord, restricciones=[0,0,0]) -> None:
         self.indice = Node.indice           # Indice propio del nodo creado. 
-        self.x1 = x1                        # Coordenada 1.
-        self.x2 = x2                        # Coordenada 2.
+        self.coord = coord                     # Coordenada 2.
         self.restricciones = restricciones  # Arreglo de restricciones. [0,0,0] default
 
         self.n_DoF = 0 # Númreo de grados de libertad del nodo. Dependerá del modelo.
@@ -93,8 +93,8 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         ni = self.nodes[0]
         nj = self.nodes[1]
 
-        self.L = math.sqrt((nj.x1 - ni.x1)**2 + (nj.x2 - ni.x2)**2)
-        self.theta = math.atan2((nj.x2 - ni.x2),(nj.x1 - ni.x1))
+        self.L = math.sqrt((nj.coord[0] - ni.coord[0])**2 + (nj.coord[1] - ni.coord[1])**2)
+        self.theta = math.atan2((nj.coord[1] - ni.coord[1]),(nj.coord[0] - ni.coord[0]))
 
     # Cálculo de la matriz de rigidez del elemento en coordenadas globales. Se una en el constructor.
     def K_porticoGlobal(self):
@@ -151,12 +151,12 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         nj = self.nodes[1]
 
         # Extracción de coordenadas nodo inicial
-        xi = ni.x1
-        yi = ni.x2
+        xi = ni.coord[0]
+        yi = ni.coord[1]
 
         # Extracción de coordenadas nodo final
-        xj = nj.x1
-        yj = nj.x2
+        xj = nj.coord[0]
+        yj = nj.coord[1]
 
         # Traza en el eje "ax" la línea del elemento. Se debe pasar el eje.
         ax.plot([xi, xj], [yi, yj], 'k-o') 
@@ -306,10 +306,10 @@ class Model:
 
     def plot_deformed(self,ax,ampFactor): 
         S_updated = copy.deepcopy(self.S)  #Create a new structure to modify his nodes. (copy)
-        
+
         for n in S_updated.nodes:
-            n.x1 += ampFactor*n.u[0] # Se aplifican los desplazamientos para que sean visibles.
-            n.x2 += ampFactor*n.u[1] 
+            n.coord[0] += ampFactor*n.u[0] # Se aplifican los desplazamientos para que sean visibles.
+            n.coord[1] += ampFactor*n.u[1] 
             
         self.S.plot(ax)
         S_updated.plot(ax)
