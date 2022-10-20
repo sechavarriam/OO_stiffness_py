@@ -1,11 +1,12 @@
 from ast import Pass
 import math
+import copy
 from operator import index
 import numpy as np
 import matplotlib.pyplot as plt
 
 #---------------------------------------------------------------------------------
-class Nodo:
+class Node:
     # indice propio de la clase. Cada vez que se llame el constructor para crear un
     # nodo nuevo, el índice se actualiza. Almacenará la cantidad de nodos creados.
 
@@ -13,7 +14,7 @@ class Nodo:
     indice = 1 # 
 
     def __init__(self, x1, x2, restricciones=[0,0,0]) -> None:
-        self.indice = Nodo.indice           # Indice propio del nodo creado. 
+        self.indice = Node.indice           # Indice propio del nodo creado. 
         self.x1 = x1                        # Coordenada 1.
         self.x2 = x2                        # Coordenada 2.
         self.restricciones = restricciones  # Arreglo de restricciones. [0,0,0] default
@@ -29,7 +30,7 @@ class Nodo:
         #TODO: Asignar para cada grado de libertad un índice en la posición global de la
         #      estructura. (self.DoF_Index = [])
 
-        Nodo.indice += 1 # Suma uno al índice de la clase. 
+        Node.indice += 1 # Suma uno al índice de la clase. 
 
     #__str__(self) -> str: es un método (función) de la clase que le dice a 
     # python qué mostrar cuando se hace print. En este caso mostrará las 
@@ -303,8 +304,15 @@ class Model:
         self.set_displacements()
 
 
-    def plot_deformed(self): 
-        S_updated = self.S  #Create a new structure to modify his nodes.
+    def plot_deformed(self,ax,ampFactor): 
+        S_updated = copy.deepcopy(self.S)  #Create a new structure to modify his nodes. (copy)
+        
+        for n in S_updated.nodes:
+            n.x1 += ampFactor*n.u[0] # Se aplifican los desplazamientos para que sean visibles.
+            n.x2 += ampFactor*n.u[1] 
+            
+        self.S.plot(ax)
+        S_updated.plot(ax)
 
 
 
