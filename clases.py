@@ -204,7 +204,8 @@ class Structure:
 
 
     # Con el siguiente método no es necesario introducir las restricciones en el constructor
-    # de la estructura. La idea es extraer las restricciones desde los atributos de los nodos.
+    # de la estruc
+    # 0tura. La idea es extraer las restricciones desde los atributos de los nodos.
     def extraerRestricciones(self):
         resMat = [] # Inicialización de la matriz de restricciones.
 
