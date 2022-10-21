@@ -117,7 +117,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         T[5,5] = 1
 
         EAL = self.E*self.A/self.L
-        EI= self.E*self.I
+        EI   = self.E*self.I
 
         l = self.L
 
@@ -147,7 +147,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         self.K = np.transpose(T) * k * T
 
-    def plot(self,ax):
+    def plot(self,ax,*args,**kwargs):
         ni = self.nodes[0]
         nj = self.nodes[1]
 
@@ -160,7 +160,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         yj = nj.coord[1]
 
         # Traza en el eje "ax" la línea del elemento. Se debe pasar el eje.
-        ax.plot([xi, xj], [yi, yj], 'k-o') 
+        ax.plot([xi, xj], [yi, yj], *args, **kwargs) 
     
 #---------------------------------------------------------------------------------
 
@@ -234,9 +234,9 @@ class Structure:
         self.Kan = np.array(Kan)
         self.Kna = np.array(Kna) 
 
-    def plot(self,ax):
+    def plot(self,ax, *args, **kwargs):
         for e in self.elementos:
-            e.plot(ax)
+            e.plot(ax, *args, **kwargs)
 
         ax.set_aspect('equal', 'box')
 
@@ -306,15 +306,15 @@ class Model:
         self.set_displacements()
 
 
-    def plot_deformed(self,ax,ampFactor): 
+    def plot_deformed(self,ax,ampFactor, *args, **kwargs): 
         S_updated = copy.deepcopy(self.S)  #Create a new structure to modify his nodes. (copy)
 
         for n in S_updated.nodes:
             n.coord[0] += ampFactor*n.u[0] # Se aplifican los desplazamientos para que sean visibles.
             n.coord[1] += ampFactor*n.u[1] 
             
-        self.S.plot(ax)
-        S_updated.plot(ax)
+        self.S.plot(ax, 'k-o')
+        S_updated.plot(ax, 'b-o')
 
 
 

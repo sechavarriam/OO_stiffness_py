@@ -25,11 +25,11 @@ m.add_node_force(5,[0 , 100, -25])
 m.solve()
 
 fig, ax = plt.subplots()
-m.plot_deformed(ax,100)
+m.plot_deformed(ax,180)
 plt.show()
 
 #s.plot()
-pass
-import matplotlib.pyplot as plt
-plt.spy(s.K, marker='.')
-plt.show()
+#pass
+#import matplotlib.pyplot as plt
+#plt.show()
+#plt.spy(s.K, marker='.')
