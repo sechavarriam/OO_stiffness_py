@@ -12,7 +12,7 @@ class Node:
     # Al ser un atributo de la clase no se pone "self"
     indice = 1 
 
-    def __init__(self, coord, restricciones=[0,0,0]) -> None:
+    def __init__(self, coord, restricciones) -> None:
         self.indice = Node.indice           # Indice propio del nodo creado. 
         self.coord = coord                     # Coordenada 2.
         self.restricciones = restricciones  # Arreglo de restricciones. [0,0,0] default
@@ -33,8 +33,8 @@ class Node:
     #__str__(self) -> str: es un método (función) de la clase que le dice a 
     # python qué mostrar cuando se hace print. En este caso mostrará las 
     # coordenadas del nodo.
-    def __str__(self) -> str: 
-        return "("+str(self.x1)+","+str(self.x2)+")" 
+    # def __str__(self) -> str: 
+    #     return "("+str(self.x1)+","+str(self.x2)+")" 
 
 
 #---------------------------------------------------------------------------------
@@ -73,8 +73,11 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         MaterialIsotropicoLineal.__init__(self,E)
         
         # Asignación de número de DoF por nodo. Evalúa si no se ha asignado.
-        if self.nodes[0].n_DoF == 0: self.nodes[0].n_DoF = 3
-        if self.nodes[1].n_DoF == 0: self.nodes[1].n_DoF = 3
+        if self.nodes[0].n_DoF == 0:
+             self.nodes[0].n_DoF = 3
+
+        if self.nodes[1].n_DoF == 0:
+             self.nodes[1].n_DoF = 3
 
         #TODO: Qué pasa si no es cero, pero tampoco 3? Puede pasar si se usan diferentes tipos
         #      De elemento. 
