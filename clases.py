@@ -97,7 +97,9 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         self.theta = math.atan2((nj.coord[1] - ni.coord[1]),(nj.coord[0] - ni.coord[0]))
 
     # Cálculo de la matriz de rigidez del elemento en coordenadas globales. Se una en el constructor.
-    def K_porticoGlobal(self):
+    
+    
+    def T(self):
         c = math.cos(self.theta) 
         s = math.sin(self.theta) 
 
@@ -114,6 +116,14 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         T[4,3] = -s
         T[4,4] = c
         T[5,5] = 1
+
+        return T 
+    
+    def K_porticoGlobal(self):
+        c = math.cos(self.theta) 
+        s = math.sin(self.theta) 
+
+        T = self.T()
 
         EAL = self.E*self.A/self.L
         EI   = self.E*self.I
@@ -244,10 +254,14 @@ class Structure:
 # Clase Model (static)
 
 class Model:
+
     def __init__(self ,struct) -> None:
         self.S = struct
-        self.F = np.array(np.zeros([self.S.n_DoF])) #Vector de fuerzas.
-        self.u = np.array(np.zeros([self.S.n_DoF])) #Vector de desplazamientos 
+
+        self.F  = np.array(np.zeros([self.S.n_DoF])) #Vector de fuerzas.
+        self.FE = np.array(np.zeros([self.S.n_DoF])) #Vector de fuerzas de empotramiento.
+
+        self.u  = np.array(np.zeros([self.S.n_DoF])) #Vector de desplazamientos 
 
     def add_node_displacement(self, node_index, displacement): 
         # displacement = [u,v,theta]
@@ -256,7 +270,6 @@ class Model:
 
         self.F[pos_1:pos_2+1] += displacement[0:3]
 
-
     def add_node_force(self, node_index, force): 
         # force = [Fx,Fy,M]
         pos_1 = 3*(node_index-1)
@@ -264,12 +277,30 @@ class Model:
 
         self.F[pos_1:pos_2+1] += force[0:3]
 
+
+    def add_element_force(self, element_index, force):
+        # force = np.array([F1x, F1y, M1, F2x, F2y, M2])
+        ni = self.S.elementos[element_index].nodes[0].indice - 1
+        nj = self.S.elementos[element_index].nodes[1].indice - 1
+
+        pos_Ii = 3*ni
+        pos_If = 3*ni + 2
+
+        pos_Ji = 3*nj
+        pos_Jf = 3*nj + 2
+
+        GlobalF = np.matmul(self.S.elementos[element_index].T().transpose(), force)
+        
+
+        self.FE[pos_Ii:pos_If+1] += force[0:3]
+        self.FE[pos_Ji:pos_Jf+1] += force[3:6]
+
+
     def extraer_Fn(self): #Extracción de vector de fuerzas para DoF libres.
         self.Fn = [self.F[index] for index in self.S.free_index]
 
     def extraer_ua(self): #Extracción de vector de desplazamientos impuestos (apoyos).
         self.ua = [self.u[index] for index in self.S.rest_index]
-
 
     def set_displacements(self): 
         #Ensambla el vector total de desplaamientos en términos de un y ua.
@@ -288,7 +319,6 @@ class Model:
             #node.u.append(self.u[3*i])
             #node.u.append(self.u[3*i+1])
             #node.u.append(self.u[3*i+2])
-
 
     def solve(self):        
         self.extraer_Fn()
