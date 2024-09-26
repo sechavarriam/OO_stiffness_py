@@ -105,16 +105,12 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
 
         T = np.zeros([6,6])
 
-        T[0,0] = c
-        T[0,1] = s
-        T[1,0] = -s
-        T[1,1] = c
-        T[2,2] = 1
-        T[3,3] = c
-        T[3,4] = s
-        T[4,3] = -s
-        T[4,4] = c
-        T[5,5] = 1
+        T[0,0] =  c; T[0,1] =  s;
+        T[1,0] = -s; T[1,1] =  c;
+        T[2,2] =  1;
+        T[3,3] =  c; T[3,4] =  s;
+        T[4,3] = -s; T[4,4] =  c;
+        T[5,5] =  1;
 
         return T 
     
@@ -184,13 +180,11 @@ class Structure:
                              # En este caso está definido para pórticos planos únicamente.
 
         self.n_DoF = n_DoF
-
         self.K    = np.array(np.zeros([n_DoF, n_DoF]))
         self.resV = np.array(np.zeros([n_DoF,1])) # Vector de restricciones.
 
         self.extraerRestricciones()
         self.ensambleK()
-        #self.extraer_subK() #Se deja para que lo haga el modelo.
 
     def ensambleK(self):
         for elem in self.elementos: 
@@ -225,7 +219,6 @@ class Structure:
 
         self.rest_index = np.where(self.resV != 0)[0] # Índices de DoF restringidos (apoyos)
         self.free_index = np.where(self.resV == 0)[0] # Índices de DOF libres.
-
 
     # El siguiente método extrae, de la matriz global, las submatrices necesarias para el análisis
     # elástico lineal estático.
@@ -273,8 +266,8 @@ class Model:
 
     def add_element_force(self, element_index, force):
         # force = np.array([F1x, F1y, M1, F2x, F2y, M2])
-        ni = self.S.elementos[element_index].nodes[0].indice - 1
-        nj = self.S.elementos[element_index].nodes[1].indice - 1
+        ni = self.S.elementos[element_index-1].nodes[0].indice - 1
+        nj = self.S.elementos[element_index-1].nodes[1].indice - 1
 
         pos_Ii = 3*ni
         pos_If = 3*ni + 2
@@ -298,7 +291,6 @@ class Model:
         self.FEa = np.array([self.FE[index] for index in self.S.rest_index])
 
 
-
     def extraer_ua(self): #Extracción de vector de desplazamientos impuestos (apoyos).
         self.ua = [self.u[index] for index in self.S.rest_index]
 
@@ -316,7 +308,6 @@ class Model:
             for j in range(node.n_DoF):
                 node.u.append(self.u[3*i+j])
 
-
     def solve(self):        
         self.extraer_Fn()
 
@@ -325,7 +316,6 @@ class Model:
 
         self.extraer_ua()
         self.S.extraer_subK() # Extrae sub-matrices Knn de la estructura.
-
 
         # Cálculo de los desplazamientos.
         self.un = np.linalg.solve(self.S.Knn , (self.Fn - self.FEn) - np.matmul(self.S.Kna, self.ua))
@@ -336,7 +326,6 @@ class Model:
         # Ensamble del vector total de desplazamientos.
         self.set_displacements()
 
-
     def plot_deformed(self,ax,ampFactor, *args, **kwargs): 
         S_updated = copy.deepcopy(self.S)  #Create a new structure to modify his nodes. (copy)
 
@@ -346,14 +335,6 @@ class Model:
             
         self.S.plot(ax, 'k-o')
         S_updated.plot(ax, 'b-o')
-
-
-
-
-
-
-
-
 
 ## ========================================================================================
 ## ========================================================================================

@@ -1,13 +1,7 @@
 import math
-import sys
 import numpy as np
 
-sys.path.append('../')
-
-
-
 from clases import Node, ElementoPortico, Structure
-
 
 def load_struct():
 
