@@ -104,8 +104,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         s = math.sin(self.theta) 
 
         T = np.zeros([6,6])
-        T = np.matrix(T)
-        
+
         T[0,0] = c
         T[0,1] = s
         T[1,0] = -s
@@ -131,7 +130,6 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         l = self.L
 
         k = np.zeros([6,6])
-        k = np.matrix(k)
 
         k[0,0] =  EAL
         k[0,3] = -EAL
@@ -154,7 +152,7 @@ class ElementoPortico(Elemento, MaterialIsotropicoLineal):
         k[5,4] = - 6*EI/l**2
         k[5,5] =   4*EI/l 
 
-        self.K = np.transpose(T) * k * T
+        self.K = np.matmul(np.matmul(T.transpose(),k),T)
 
     def plot(self,ax,*args,**kwargs):
         ni = self.nodes[0]
@@ -232,16 +230,11 @@ class Structure:
     # El siguiente método extrae, de la matriz global, las submatrices necesarias para el análisis
     # elástico lineal estático.
     def extraer_subK(self):
+        self.Knn = np.array([[self.K[i][j] for i in self.free_index] for j in self.free_index])
+        self.Kaa = np.array([[self.K[i][j] for i in self.rest_index] for j in self.rest_index])
 
-        Knn = [[self.K[i][j] for j in self.free_index] for i in self.free_index]
-        Kaa = [[self.K[i][j] for j in self.rest_index] for i in self.rest_index]
-        Kan = [[self.K[i][j] for j in self.rest_index] for i in self.free_index]
-        Kna = [[self.K[i][j] for j in self.free_index] for i in self.rest_index]
-
-        self.Knn = np.array(Knn)
-        self.Kaa = np.array(Kaa)
-        self.Kan = np.array(Kan)
-        self.Kna = np.array(Kna) 
+        self.Kna = np.array([[self.K[i][j] for i in self.rest_index] for j in self.free_index])
+        self.Kan = np.array([[self.K[i][j] for i in self.free_index] for j in self.rest_index])
 
     def plot(self,ax, *args, **kwargs):
         for e in self.elementos:
@@ -291,13 +284,20 @@ class Model:
 
         GlobalF = np.matmul(self.S.elementos[element_index].T().transpose(), force)
         
-
-        self.FE[pos_Ii:pos_If+1] += force[0:3]
-        self.FE[pos_Ji:pos_Jf+1] += force[3:6]
+        self.FE[pos_Ii:pos_If+1] += GlobalF[0:3]
+        self.FE[pos_Ji:pos_Jf+1] += GlobalF[3:6]
 
 
     def extraer_Fn(self): #Extracción de vector de fuerzas para DoF libres.
-        self.Fn = [self.F[index] for index in self.S.free_index]
+        self.Fn  = np.array([self.F[index] for index in self.S.free_index])
+        
+    def extraer_FEn(self): #Extracción de vector de fuerzas de empotramiento para DoF libres.
+        self.FEn = np.array([self.FE[index] for index in self.S.free_index])
+    
+    def extraer_FEa(self): #Extracción de vector de fuerzas de empotramiento para DoF restringidos.
+        self.FEa = np.array([self.FE[index] for index in self.S.rest_index])
+
+
 
     def extraer_ua(self): #Extracción de vector de desplazamientos impuestos (apoyos).
         self.ua = [self.u[index] for index in self.S.rest_index]
@@ -316,20 +316,22 @@ class Model:
             for j in range(node.n_DoF):
                 node.u.append(self.u[3*i+j])
 
-            #node.u.append(self.u[3*i])
-            #node.u.append(self.u[3*i+1])
-            #node.u.append(self.u[3*i+2])
 
     def solve(self):        
         self.extraer_Fn()
+
+        self.extraer_FEn()
+        self.extraer_FEa()
+
         self.extraer_ua()
-        self.S.extraer_subK() # Extrae matrices Knn de la estructura.
+        self.S.extraer_subK() # Extrae sub-matrices Knn de la estructura.
+
 
         # Cálculo de los desplazamientos.
-        self.un = np.linalg.solve(self.S.Knn , self.Fn - np.matmul(self.S.Kan, self.ua))
+        self.un = np.linalg.solve(self.S.Knn , (self.Fn - self.FEn) - np.matmul(self.S.Kna, self.ua))
 
         # Cálculo de las reacciones.
-        self.Fa = np.matmul(self.S.Kna, self.un) + np.matmul(self.S.Kaa, self.ua)
+        self.Fa = np.matmul(self.S.Kan, self.un) + np.matmul(self.S.Kaa, self.ua) + self.FEa
 
         # Ensamble del vector total de desplazamientos.
         self.set_displacements()

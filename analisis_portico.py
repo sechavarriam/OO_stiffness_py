@@ -23,17 +23,25 @@ m = Model(s)
 m.add_node_force(5,[50, 0  ,   0])
 m.add_node_force(5,[0 , 100, -25])
 
-m.add_element_force(1, MEF.UniformGravity(25,2))
+m.add_element_force(1, MEF.UniformGravity(m.S.elementos[1].L, -24))
 
 
 m.solve()
 
+
+print(m.Fn)
+print(m.FEn)
+
+print(m.Fn-m.FEn)
+
+print(m.FEa)
+
+
 fig, ax = plt.subplots()
 m.plot_deformed(ax,180)
-plt.show()
 
-#s.plot()
-#pass
-#import matplotlib.pyplot as plt
-#plt.show()
+
 #plt.spy(s.K, marker='.')
+
+
+plt.show()
