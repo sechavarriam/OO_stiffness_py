@@ -29,8 +29,6 @@ m = Model(s)
 m.add_element_force(0, MEF.UniformGravity  (24,10))
 m.add_element_force(1, MEF.ConcentratedLoad(75,4,8))
 
-
-
 m.solve()
 
 

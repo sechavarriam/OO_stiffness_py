@@ -269,6 +269,8 @@ class Model:
         ni = self.S.elementos[element_index-1].nodes[0].indice - 1
         nj = self.S.elementos[element_index-1].nodes[1].indice - 1
 
+        print(ni,nj)
+
         pos_Ii = 3*ni
         pos_If = 3*ni + 2
 
